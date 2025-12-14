@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { CenterEntity, StudentEntity, TeacherEntity } from "./entities";
+import { CenterEntity, StudentEntity, TeacherEntity, PaymentEntity, ExpenseEntity, FinancialConfigEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
-import { Center, Student, Teacher } from "@shared/types";
+import { Center, Student, Teacher, Payment, Expense, FinancialConfig } from "@shared/types";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   // Ensure seed data on first request
   app.use('/api/*', async (c, next) => {
@@ -10,6 +10,9 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       CenterEntity.ensureSeed(c.env),
       StudentEntity.ensureSeed(c.env),
       TeacherEntity.ensureSeed(c.env),
+      PaymentEntity.ensureSeed(c.env),
+      ExpenseEntity.ensureSeed(c.env),
+      FinancialConfigEntity.ensureSeed(c.env),
     ]);
     await next();
   });
@@ -64,5 +67,80 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const id = c.req.param('id');
     const deleted = await TeacherEntity.delete(c.env, id);
     return ok(c, { id, deleted });
+  });
+  // PAYMENTS
+  app.get('/api/payments', async (c) => {
+    const page = await PaymentEntity.list(c.env);
+    return ok(c, page);
+  });
+  app.post('/api/payments', async (c) => {
+    const { studentId, centerId, baseAmount, discountAmount, discountPercent, paidAmount } = (await c.req.json()) as Partial<Payment>;
+    if (!isStr(studentId) || !isStr(centerId) || typeof baseAmount !== 'number' || typeof paidAmount !== 'number') {
+      return bad(c, 'studentId, centerId, baseAmount, and paidAmount are required');
+    }
+    const studentExists = await new StudentEntity(c.env, studentId).exists();
+    if (!studentExists) return bad(c, `Student with id ${studentId} not found`);
+    const payment = await PaymentEntity.create(c.env, { 
+      id: crypto.randomUUID(), 
+      studentId, 
+      centerId, 
+      baseAmount, 
+      discountAmount: discountAmount ?? 0,
+      discountPercent,
+      paidAmount, 
+      paidDate: Date.now(), 
+      createdAt: Date.now() 
+    });
+    return ok(c, payment);
+  });
+  app.delete('/api/payments/:id', async (c) => {
+    const id = c.req.param('id');
+    const deleted = await PaymentEntity.delete(c.env, id);
+    return ok(c, { id, deleted });
+  });
+  // EXPENSES
+  app.get('/api/expenses', async (c) => {
+    const page = await ExpenseEntity.list(c.env);
+    return ok(c, page);
+  });
+  app.post('/api/expenses', async (c) => {
+    const { centerId, description, amount } = (await c.req.json()) as Partial<Expense>;
+    if (!isStr(centerId) || !isStr(description) || typeof amount !== 'number') {
+      return bad(c, 'centerId, description, and amount are required');
+    }
+    const expense = await ExpenseEntity.create(c.env, { 
+      id: crypto.randomUUID(), 
+      centerId, 
+      description, 
+      amount, 
+      date: Date.now(), 
+      createdAt: Date.now() 
+    });
+    return ok(c, expense);
+  });
+  app.delete('/api/expenses/:id', async (c) => {
+    const id = c.req.param('id');
+    const deleted = await ExpenseEntity.delete(c.env, id);
+    return ok(c, { id, deleted });
+  });
+  // FINANCIAL CONFIGS
+  app.get('/api/financial-configs', async (c) => {
+    const page = await FinancialConfigEntity.list(c.env);
+    return ok(c, page);
+  });
+  app.post('/api/financial-configs', async (c) => {
+    const { centerId, basePricePerStudent, profPercent, centerPercent } = (await c.req.json()) as Partial<FinancialConfig>;
+    if (!isStr(centerId) || typeof basePricePerStudent !== 'number' || typeof profPercent !== 'number' || typeof centerPercent !== 'number') {
+      return bad(c, 'centerId, basePricePerStudent, profPercent, and centerPercent are required');
+    }
+    const config = await FinancialConfigEntity.create(c.env, { 
+      id: centerId, // Use centerId as config ID for 1-to-1 mapping
+      centerId, 
+      basePricePerStudent, 
+      profPercent, 
+      centerPercent, 
+      createdAt: Date.now() 
+    });
+    return ok(c, config);
   });
 }

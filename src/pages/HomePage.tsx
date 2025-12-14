@@ -4,8 +4,9 @@ import { DollarSign, Users, GraduationCap, Building } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
-import { Center, Student, Teacher } from "@shared/types";
+import { Center, Student, Teacher, Payment } from "@shared/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import React from "react";
 const mockChartData = [
   { name: 'Jan', revenue: 4000, expenses: 2400 },
   { name: 'Feb', revenue: 3000, expenses: 1398 },
@@ -44,6 +45,17 @@ export function HomePage() {
     queryKey: ['centers'],
     queryFn: () => api('/api/centers'),
   });
+  const { data: payments, isLoading: isLoadingPayments } = useQuery<{ items: Payment[] }>({
+    queryKey: ['payments'],
+    queryFn: () => api('/api/payments'),
+  });
+  const totalRevenue = React.useMemo(() => {
+    if (!payments) return 0;
+    return payments.items.reduce((sum, p) => sum + p.paidAmount, 0);
+  }, [payments]);
+  const formatCurrency = (amountInCents: number) => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amountInCents / 100);
+  };
   return (
     <AppLayout container>
       <div className="space-y-8">
@@ -52,28 +64,29 @@ export function HomePage() {
           <p className="text-lg text-muted-foreground">An executive summary of all your centers.</p>
         </header>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard title="Total Revenue" value="$45,231" icon={DollarSign} />
+          <StatCard title="Total Revenue" value={formatCurrency(totalRevenue)} icon={DollarSign} isLoading={isLoadingPayments} />
           <StatCard title="Active Students" value={students?.items.length ?? 0} icon={Users} isLoading={isLoadingStudents} />
           <StatCard title="Active Teachers" value={teachers?.items.length ?? 0} icon={GraduationCap} isLoading={isLoadingTeachers} />
           <StatCard title="Total Centers" value={centers?.items.length ?? 0} icon={Building} isLoading={isLoadingCenters} />
         </div>
         <Card className="col-span-1 lg:col-span-2">
           <CardHeader>
-            <CardTitle>Financial Overview</CardTitle>
+            <CardTitle>Financial Overview (Mock Data)</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
             <div className="h-[350px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={mockChartData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
+                  <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value / 1000}k`} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: 'hsl(var(--background))',
                       border: '1px solid hsl(var(--border))',
                       borderRadius: 'var(--radius)',
                     }}
+                    formatter={(value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)}
                   />
                   <Legend iconType="circle" />
                   <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Revenue" />

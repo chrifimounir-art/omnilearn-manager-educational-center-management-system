@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Building, Users, GraduationCap, Banknote, Settings, LifeBuoy, School } from "lucide-react";
+import { LayoutDashboard, Building, Users, GraduationCap, Banknote, Settings, LifeBuoy, School, LucideProps } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -9,14 +9,21 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-const navItems = [
+import React from "react";
+interface NavItem {
+  href: string;
+  icon: React.ForwardRefExoticComponent<Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>>;
+  label: string;
+  disabled?: boolean;
+}
+const navItems: NavItem[] = [
   { href: "/", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/centers", icon: Building, label: "Centers" },
   { href: "/students", icon: Users, label: "Students" },
   { href: "/teachers", icon: GraduationCap, label: "Teachers" },
   { href: "/finances", icon: Banknote, label: "Finances" },
 ];
-const helpItems = [
+const helpItems: NavItem[] = [
   { href: "/settings", icon: Settings, label: "Settings", disabled: true },
   { href: "/support", icon: LifeBuoy, label: "Support", disabled: true },
 ];
