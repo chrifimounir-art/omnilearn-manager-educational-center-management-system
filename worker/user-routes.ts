@@ -1,75 +1,68 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { UserEntity, ChatBoardEntity } from "./entities";
+import { CenterEntity, StudentEntity, TeacherEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
-
+import { Center, Student, Teacher } from "@shared/types";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
-  app.get('/api/test', (c) => c.json({ success: true, data: { name: 'CF Workers Demo' }}));
-
-  // USERS
-  app.get('/api/users', async (c) => {
-    await UserEntity.ensureSeed(c.env);
-    const cq = c.req.query('cursor');
-    const lq = c.req.query('limit');
-    const page = await UserEntity.list(c.env, cq ?? null, lq ? Math.max(1, (Number(lq) | 0)) : undefined);
+  // Ensure seed data on first request
+  app.use('/api/*', async (c, next) => {
+    await Promise.all([
+      CenterEntity.ensureSeed(c.env),
+      StudentEntity.ensureSeed(c.env),
+      TeacherEntity.ensureSeed(c.env),
+    ]);
+    await next();
+  });
+  // CENTERS
+  app.get('/api/centers', async (c) => {
+    const page = await CenterEntity.list(c.env);
     return ok(c, page);
   });
-
-  app.post('/api/users', async (c) => {
-    const { name } = (await c.req.json()) as { name?: string };
-    if (!name?.trim()) return bad(c, 'name required');
-    return ok(c, await UserEntity.create(c.env, { id: crypto.randomUUID(), name: name.trim() }));
+  app.post('/api/centers', async (c) => {
+    const { name, address } = (await c.req.json()) as Partial<Center>;
+    if (!isStr(name) || !isStr(address)) return bad(c, 'name and address required');
+    const center = await CenterEntity.create(c.env, { id: crypto.randomUUID(), name, address, createdAt: Date.now() });
+    return ok(c, center);
   });
-
-  // CHATS
-  app.get('/api/chats', async (c) => {
-    await ChatBoardEntity.ensureSeed(c.env);
-    const cq = c.req.query('cursor');
-    const lq = c.req.query('limit');
-    const page = await ChatBoardEntity.list(c.env, cq ?? null, lq ? Math.max(1, (Number(lq) | 0)) : undefined);
+  app.delete('/api/centers/:id', async (c) => {
+    const id = c.req.param('id');
+    const deleted = await CenterEntity.delete(c.env, id);
+    return ok(c, { id, deleted });
+  });
+  // STUDENTS
+  app.get('/api/students', async (c) => {
+    const page = await StudentEntity.list(c.env);
     return ok(c, page);
   });
-
-  app.post('/api/chats', async (c) => {
-    const { title } = (await c.req.json()) as { title?: string };
-    if (!title?.trim()) return bad(c, 'title required');
-    const created = await ChatBoardEntity.create(c.env, { id: crypto.randomUUID(), title: title.trim(), messages: [] });
-    return ok(c, { id: created.id, title: created.title });
+  app.post('/api/students', async (c) => {
+    const { firstName, lastName, dateOfBirth, centerIds } = (await c.req.json()) as Partial<Student>;
+    if (!isStr(firstName) || !isStr(lastName) || !isStr(dateOfBirth) || !Array.isArray(centerIds)) {
+      return bad(c, 'firstName, lastName, dateOfBirth, and centerIds are required');
+    }
+    const student = await StudentEntity.create(c.env, { id: crypto.randomUUID(), firstName, lastName, dateOfBirth, centerIds, createdAt: Date.now() });
+    return ok(c, student);
   });
-
-  // MESSAGES
-  app.get('/api/chats/:chatId/messages', async (c) => {
-    const chat = new ChatBoardEntity(c.env, c.req.param('chatId'));
-    if (!await chat.exists()) return notFound(c, 'chat not found');
-    return ok(c, await chat.listMessages());
+  app.delete('/api/students/:id', async (c) => {
+    const id = c.req.param('id');
+    const deleted = await StudentEntity.delete(c.env, id);
+    return ok(c, { id, deleted });
   });
-
-  app.post('/api/chats/:chatId/messages', async (c) => {
-    const chatId = c.req.param('chatId');
-    const { userId, text } = (await c.req.json()) as { userId?: string; text?: string };
-    if (!isStr(userId) || !text?.trim()) return bad(c, 'userId and text required');
-    const chat = new ChatBoardEntity(c.env, chatId);
-    if (!await chat.exists()) return notFound(c, 'chat not found');
-    return ok(c, await chat.sendMessage(userId, text.trim()));
+  // TEACHERS
+  app.get('/api/teachers', async (c) => {
+    const page = await TeacherEntity.list(c.env);
+    return ok(c, page);
   });
-
-  // DELETE: Users
-  app.delete('/api/users/:id', async (c) => ok(c, { id: c.req.param('id'), deleted: await UserEntity.delete(c.env, c.req.param('id')) }));
-
-  app.post('/api/users/deleteMany', async (c) => {
-    const { ids } = (await c.req.json()) as { ids?: string[] };
-    const list = ids?.filter(isStr) ?? [];
-    if (list.length === 0) return bad(c, 'ids required');
-    return ok(c, { deletedCount: await UserEntity.deleteMany(c.env, list), ids: list });
+  app.post('/api/teachers', async (c) => {
+    const { firstName, lastName, specialty, remuneration, centerIds } = (await c.req.json()) as Partial<Teacher>;
+    if (!isStr(firstName) || !isStr(lastName) || !isStr(specialty) || !isStr(remuneration) || !Array.isArray(centerIds)) {
+      return bad(c, 'firstName, lastName, specialty, remuneration, and centerIds are required');
+    }
+    const teacher = await TeacherEntity.create(c.env, { id: crypto.randomUUID(), firstName, lastName, specialty, remuneration, centerIds, createdAt: Date.now() });
+    return ok(c, teacher);
   });
-
-  // DELETE: Chats
-  app.delete('/api/chats/:id', async (c) => ok(c, { id: c.req.param('id'), deleted: await ChatBoardEntity.delete(c.env, c.req.param('id')) }));
-
-  app.post('/api/chats/deleteMany', async (c) => {
-    const { ids } = (await c.req.json()) as { ids?: string[] };
-    const list = ids?.filter(isStr) ?? [];
-    if (list.length === 0) return bad(c, 'ids required');
-    return ok(c, { deletedCount: await ChatBoardEntity.deleteMany(c.env, list), ids: list });
+  app.delete('/api/teachers/:id', async (c) => {
+    const id = c.req.param('id');
+    const deleted = await TeacherEntity.delete(c.env, id);
+    return ok(c, { id, deleted });
   });
 }
