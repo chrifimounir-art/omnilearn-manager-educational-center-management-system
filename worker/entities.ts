@@ -1,6 +1,6 @@
 import { IndexedEntity } from "./core-utils";
-import type { Center, Student, Teacher, FinancialConfig, Payment, Expense } from "@shared/types";
-import { MOCK_CENTERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_PAYMENTS, MOCK_EXPENSES } from "@shared/mock-data";
+import type { Center, Student, Teacher, FinancialConfig, Payment, Expense, Level, Class, Subject } from "@shared/types";
+import { MOCK_CENTERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_PAYMENTS, MOCK_EXPENSES, MOCK_LEVELS, MOCK_CLASSES, MOCK_SUBJECTS } from "@shared/mock-data";
 export class CenterEntity extends IndexedEntity<Center> {
   static readonly entityName = "center";
   static readonly indexName = "centers";
@@ -19,12 +19,10 @@ export class TeacherEntity extends IndexedEntity<Teacher> {
   static readonly initialState: Teacher = { id: "", firstName: "", lastName: "", specialty: "", remuneration: "hourly", centerIds: [], createdAt: 0 };
   static seedData = MOCK_TEACHERS;
 }
-// Phase 3 Additions
 export class FinancialConfigEntity extends IndexedEntity<FinancialConfig> {
   static readonly entityName = "financialConfig";
   static readonly indexName = "financialConfigs";
   static readonly initialState: FinancialConfig = { id: "", centerId: "", basePricePerStudent: 0, profPercent: 0, centerPercent: 0, createdAt: 0 };
-  // No seed data for this, should be configured by user
 }
 export class PaymentEntity extends IndexedEntity<Payment> {
   static readonly entityName = "payment";
@@ -37,4 +35,22 @@ export class ExpenseEntity extends IndexedEntity<Expense> {
   static readonly indexName = "expenses";
   static readonly initialState: Expense = { id: "", centerId: "", description: "", amount: 0, date: 0, createdAt: 0 };
   static seedData = MOCK_EXPENSES;
+}
+export class LevelEntity extends IndexedEntity<Level> {
+  static readonly entityName = "level";
+  static readonly indexName = "levels";
+  static readonly initialState: Level = { id: "", centerId: "", name: "", createdAt: 0 };
+  static seedData = MOCK_LEVELS;
+}
+export class ClassEntity extends IndexedEntity<Class> {
+  static readonly entityName = "class";
+  static readonly indexName = "classes";
+  static readonly initialState: Class = { id: "", levelId: "", name: "", capacity: 0, createdAt: 0 };
+  static seedData = MOCK_CLASSES;
+}
+export class SubjectEntity extends IndexedEntity<Subject> {
+  static readonly entityName = "subject";
+  static readonly indexName = "subjects";
+  static readonly initialState: Subject = { id: "", centerId: "", name: "", levelIds: [], createdAt: 0 };
+  static seedData = MOCK_SUBJECTS;
 }

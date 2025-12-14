@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Building, Users, GraduationCap, Banknote, Settings, LifeBuoy, School, LucideProps } from "lucide-react";
+import { LayoutDashboard, Building, Users, GraduationCap, Banknote, Settings, LifeBuoy, School, LucideProps, BookOpen } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -21,6 +21,7 @@ const navItems: NavItem[] = [
   { href: "/centers", icon: Building, label: "Centers" },
   { href: "/students", icon: Users, label: "Students" },
   { href: "/teachers", icon: GraduationCap, label: "Teachers" },
+  { href: "/academic", icon: BookOpen, label: "Academic" },
   { href: "/finances", icon: Banknote, label: "Finances" },
 ];
 const helpItems: NavItem[] = [

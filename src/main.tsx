@@ -16,13 +16,8 @@ import { CentersPage } from '@/pages/CentersPage';
 import { StudentsPage } from '@/pages/StudentsPage';
 import { TeachersPage } from '@/pages/TeachersPage';
 import { FinancesPage } from '@/pages/FinancesPage';
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      suspense: false,
-    },
-  },
-});
+import { AcademicPage } from '@/pages/AcademicPage';
+const queryClient = new QueryClient();
 const router = createBrowserRouter([
   {
     path: "/",
@@ -42,6 +37,11 @@ const router = createBrowserRouter([
   {
     path: "/teachers",
     element: <TeachersPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/academic",
+    element: <AcademicPage />,
     errorElement: <RouteErrorBoundary />,
   },
   {

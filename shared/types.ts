@@ -16,6 +16,8 @@ export interface Student {
   dateOfBirth: string; // ISO string
   centerIds: string[];
   createdAt: number;
+  classId?: string;
+  subjectIds?: string[];
 }
 export type TeacherRemuneration = 'hourly' | 'per_student' | 'percentage';
 export interface Teacher {
@@ -26,8 +28,8 @@ export interface Teacher {
   remuneration: TeacherRemuneration;
   centerIds: string[];
   createdAt: number;
+  subjectIds?: string[];
 }
-// Phase 3 Additions
 export interface FinancialConfig {
   id: string; // Typically same as centerId for 1-to-1 mapping
   centerId: string;
@@ -53,5 +55,25 @@ export interface Expense {
   description: string;
   amount: number; // In cents
   date: number; // timestamp
+  createdAt: number;
+}
+export interface Level {
+  id: string;
+  centerId: string;
+  name: string;
+  createdAt: number;
+}
+export interface Class {
+  id: string;
+  levelId: string;
+  name: string;
+  capacity: number;
+  createdAt: number;
+}
+export interface Subject {
+  id: string;
+  centerId: string;
+  name: string;
+  levelIds: string[];
   createdAt: number;
 }

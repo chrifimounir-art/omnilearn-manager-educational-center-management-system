@@ -1,6 +1,6 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Users, GraduationCap, Building, TrendingUp, TrendingDown } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { DollarSign, Users, GraduationCap, Building, TrendingUp } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
@@ -10,7 +10,8 @@ import React from "react";
 import { StatCard } from "@/components/StatCard";
 import { format } from 'date-fns';
 const formatCurrency = (amountInCents: number) => {
-  return new Intl.NumberFormat('fr-MA', { style: 'currency', currency: 'MAD', maximumFractionDigits: 0 }).format(amountInCents / 100);
+  if (typeof amountInCents !== 'number') return new Intl.NumberFormat('fr-MA', { style: 'currency', currency: 'MAD' }).format(0);
+  return new Intl.NumberFormat('fr-MA', { style: 'currency', currency: 'MAD' }).format(amountInCents / 100);
 };
 export function HomePage() {
   const { data: students, isLoading: isLoadingStudents } = useQuery<{ items: Student[] }>({
@@ -44,21 +45,21 @@ export function HomePage() {
   }, [expenses]);
   const netProfit = totalRevenue - totalExpenses;
   const chartData = React.useMemo(() => {
-    const monthlyData: { [key: string]: { name: string; income: number; expenses: number } } = {};
-    const addData = (items: (Payment[] | Expense[] | undefined), type: 'income' | 'expenses') => {
+    const monthlyData: Record<string, { name: string; income: number; expenses: number }> = {};
+    const addData = (items: (Payment | Expense)[] | undefined, type: 'income' | 'expenses') => {
       items?.forEach(item => {
         const date = new Date('date' in item ? item.date : item.paidDate);
         const monthKey = format(date, 'MMM yyyy');
         if (!monthlyData[monthKey]) {
-          monthlyData[monthKey] = { name: format(date, 'MMM'), income: 0, expenses: 0 };
+          monthlyData[monthKey] = { name: monthKey, income: 0, expenses: 0 };
         }
-        const amount = ('paidAmount' in item ? item.paidAmount : item.amount) / 100;
+        const amount = 'paidAmount' in item ? item.paidAmount : item.amount;
         monthlyData[monthKey][type] += amount;
       });
     };
     addData(payments?.items, 'income');
     addData(expenses?.items, 'expenses');
-    return Object.values(monthlyData).sort((a, b) => new Date(a.name + ' 2024').getTime() - new Date(b.name + ' 2024').getTime());
+    return Object.values(monthlyData).sort((a, b) => new Date(a.name).getTime() - new Date(b.name).getTime());
   }, [payments, expenses]);
   return (
     <AppLayout container>
@@ -71,7 +72,7 @@ export function HomePage() {
           <StatCard title="Total Revenue" value={formatCurrency(totalRevenue)} icon={TrendingUp} isLoading={isLoading} />
           <StatCard title="Net Profit" value={formatCurrency(netProfit)} icon={DollarSign} isLoading={isLoading} />
           <StatCard title="Active Students" value={students?.items.length ?? 0} icon={Users} isLoading={isLoading} />
-          <StatCard title="Total Centers" value={centers?.items.length ?? 0} icon={Building} isLoading={isLoading} />
+          <StatCard title="Teachers" value={teachers?.items.length ?? 0} icon={GraduationCap} isLoading={isLoading} />
         </div>
         <Card className="col-span-1 lg:col-span-4">
           <CardHeader>
@@ -85,14 +86,14 @@ export function HomePage() {
                   <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value / 1000}k`} />
+                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => formatCurrency(value)} />
                     <Tooltip
                       contentStyle={{
                         backgroundColor: 'hsl(var(--background))',
                         border: '1px solid hsl(var(--border))',
                         borderRadius: 'var(--radius)',
                       }}
-                      formatter={(value: number) => formatCurrency(value * 100)}
+                      formatter={(value: number) => formatCurrency(value)}
                     />
                     <Legend iconType="circle" />
                     <Area type="monotone" dataKey="income" stackId="1" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.2)" name="Income" />

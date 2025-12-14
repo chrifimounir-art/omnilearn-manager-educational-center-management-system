@@ -1,23 +1,22 @@
-import type { Center, Student, Teacher, Payment, Expense } from './types';
-export const MOCK_CENTERS: Center[] = [
-  { id: 'center-1', name: 'Downtown Learning Hub', address: '123 Main St, Metropolis', createdAt: Date.now() - 1000 * 60 * 60 * 24 * 10 },
-  { id: 'center-2', name: 'Uptown Arts Academy', address: '456 Oak Ave, Star City', createdAt: Date.now() - 1000 * 60 * 60 * 24 * 5 },
-  { id: 'center-3', name: 'Suburbia Tech Institute', address: '789 Pine Ln, Gotham', createdAt: Date.now() - 1000 * 60 * 60 * 24 * 2 },
-];
-export const MOCK_STUDENTS: Student[] = [
-  { id: 'student-1', firstName: 'Alice', lastName: 'Johnson', dateOfBirth: '2008-05-15', centerIds: ['center-1'], createdAt: Date.now() - 1000 * 60 * 60 * 24 * 8 },
-  { id: 'student-2', firstName: 'Bob', lastName: 'Smith', dateOfBirth: '2007-09-20', centerIds: ['center-1', 'center-2'], createdAt: Date.now() - 1000 * 60 * 60 * 24 * 7 },
-  { id: 'student-3', firstName: 'Charlie', lastName: 'Brown', dateOfBirth: '2009-02-10', centerIds: ['center-2'], createdAt: Date.now() - 1000 * 60 * 60 * 24 * 4 },
-  { id: 'student-4', firstName: 'Diana', lastName: 'Prince', dateOfBirth: '2006-11-30', centerIds: ['center-3'], createdAt: Date.now() - 1000 * 60 * 60 * 24 * 1 },
-];
-export const MOCK_TEACHERS: Teacher[] = [
-  { id: 'teacher-1', firstName: 'John', lastName: 'Doe', specialty: 'Mathematics', remuneration: 'hourly', centerIds: ['center-1'], createdAt: Date.now() - 1000 * 60 * 60 * 24 * 9 },
-  { id: 'teacher-2', firstName: 'Jane', lastName: 'Roe', specialty: 'Physics', remuneration: 'percentage', centerIds: ['center-1', 'center-2'], createdAt: Date.now() - 1000 * 60 * 60 * 24 * 6 },
-  { id: 'teacher-3', firstName: 'Peter', lastName: 'Jones', specialty: 'Literature', remuneration: 'per_student', centerIds: ['center-2', 'center-3'], createdAt: Date.now() - 1000 * 60 * 60 * 24 * 3 },
-];
-// Phase 3 Additions
+import type { Center, Student, Teacher, Payment, Expense, Level, Class, Subject } from './types';
 const now = Date.now();
 const day = 1000 * 60 * 60 * 24;
+export const MOCK_CENTERS: Center[] = [
+  { id: 'center-1', name: 'Downtown Learning Hub', address: '123 Main St, Metropolis', createdAt: now - 10 * day },
+  { id: 'center-2', name: 'Uptown Arts Academy', address: '456 Oak Ave, Star City', createdAt: now - 5 * day },
+  { id: 'center-3', name: 'Suburbia Tech Institute', address: '789 Pine Ln, Gotham', createdAt: now - 2 * day },
+];
+export const MOCK_STUDENTS: Student[] = [
+  { id: 'student-1', firstName: 'Alice', lastName: 'Johnson', dateOfBirth: '2008-05-15', centerIds: ['center-1'], createdAt: now - 8 * day, classId: 'class-1' },
+  { id: 'student-2', firstName: 'Bob', lastName: 'Smith', dateOfBirth: '2007-09-20', centerIds: ['center-1', 'center-2'], createdAt: now - 7 * day, classId: 'class-2' },
+  { id: 'student-3', firstName: 'Charlie', lastName: 'Brown', dateOfBirth: '2009-02-10', centerIds: ['center-2'], createdAt: now - 4 * day, classId: 'class-3' },
+  { id: 'student-4', firstName: 'Diana', lastName: 'Prince', dateOfBirth: '2006-11-30', centerIds: ['center-3'], createdAt: now - 1 * day, classId: 'class-4' },
+];
+export const MOCK_TEACHERS: Teacher[] = [
+  { id: 'teacher-1', firstName: 'John', lastName: 'Doe', specialty: 'Mathematics', remuneration: 'hourly', centerIds: ['center-1'], createdAt: now - 9 * day, subjectIds: ['subj-1'] },
+  { id: 'teacher-2', firstName: 'Jane', lastName: 'Roe', specialty: 'Physics', remuneration: 'percentage', centerIds: ['center-1', 'center-2'], createdAt: now - 6 * day, subjectIds: ['subj-2'] },
+  { id: 'teacher-3', firstName: 'Peter', lastName: 'Jones', specialty: 'Literature', remuneration: 'per_student', centerIds: ['center-2', 'center-3'], createdAt: now - 3 * day, subjectIds: ['subj-3'] },
+];
 export const MOCK_PAYMENTS: Payment[] = [
   { id: 'payment-1', studentId: 'student-1', centerId: 'center-1', baseAmount: 30000, discountAmount: 0, paidAmount: 30000, paidDate: now - 2 * day, createdAt: now - 2 * day },
   { id: 'payment-2', studentId: 'student-2', centerId: 'center-1', baseAmount: 30000, discountAmount: 3000, discountPercent: 10, paidAmount: 27000, paidDate: now - 5 * day, createdAt: now - 5 * day },
@@ -35,4 +34,22 @@ export const MOCK_EXPENSES: Expense[] = [
   { id: 'expense-5', centerId: 'center-1', description: 'Teacher Payout - John Doe', amount: 120000, date: now - 3 * day, createdAt: now - 3 * day },
   { id: 'expense-6', centerId: 'center-1', description: 'Monthly Rent', amount: 250000, date: now - 45 * day, createdAt: now - 45 * day }, // Previous month
   { id: 'expense-7', centerId: 'center-2', description: 'Internet Bill', amount: 8000, date: now - 35 * day, createdAt: now - 35 * day }, // Previous month
+];
+export const MOCK_LEVELS: Level[] = [
+    { id: 'level-1', centerId: 'center-1', name: 'Primaire', createdAt: now - 10 * day },
+    { id: 'level-2', centerId: 'center-1', name: 'Collège', createdAt: now - 8 * day },
+    { id: 'level-3', centerId: 'center-2', name: 'Lycée', createdAt: now - 4 * day },
+    { id: 'level-4', centerId: 'center-3', name: 'Formation Professionnelle', createdAt: now - 1 * day },
+];
+export const MOCK_CLASSES: Class[] = [
+    { id: 'class-1', levelId: 'level-1', name: 'CP', capacity: 25, createdAt: now - 9 * day },
+    { id: 'class-2', levelId: 'level-2', name: '6ème', capacity: 30, createdAt: now - 7 * day },
+    { id: 'class-3', levelId: 'level-3', name: 'Seconde', capacity: 35, createdAt: now - 3 * day },
+    { id: 'class-4', levelId: 'level-4', name: 'Développement Web', capacity: 20, createdAt: now - 1 * day },
+];
+export const MOCK_SUBJECTS: Subject[] = [
+    { id: 'subj-1', centerId: 'center-1', name: 'Mathématiques', levelIds: ['level-1', 'level-2'], createdAt: now - 9 * day },
+    { id: 'subj-2', centerId: 'center-2', name: 'Physique-Chimie', levelIds: ['level-3'], createdAt: now - 5 * day },
+    { id: 'subj-3', centerId: 'center-2', name: 'Littérature Française', levelIds: ['level-3'], createdAt: now - 2 * day },
+    { id: 'subj-4', centerId: 'center-3', name: 'Algorithmique', levelIds: ['level-4'], createdAt: now - 1 * day },
 ];
