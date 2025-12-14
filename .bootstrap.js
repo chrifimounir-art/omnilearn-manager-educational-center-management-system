@@ -77,15 +77,7 @@ function updateWranglerJsonc() {
 }
 
 function runSetupCommands() {
-    const commands = [
-    "bun add @tanstack/react-table@^8.20.5",
-    "bun add i18next@^23.15.2",
-    "bun add react-i18next@^15.0.4",
-    "bun add jspdf@^2.5.1",
-    "bun add i18next-browser-languagedetector@^7.2.1",
-    "bun add jspdf-autotable@^3.8.3",
-    "bun add xlsx@^0.18.5"
-];
+    const commands = [];
     
     if (commands.length === 0) {
         console.log('⊘ No setup commands to run');
