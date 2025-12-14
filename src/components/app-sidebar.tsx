@@ -14,7 +14,7 @@ const navItems = [
   { href: "/centers", icon: Building, label: "Centers" },
   { href: "/students", icon: Users, label: "Students" },
   { href: "/teachers", icon: GraduationCap, label: "Teachers" },
-  { href: "/finances", icon: Banknote, label: "Finances", disabled: true },
+  { href: "/finances", icon: Banknote, label: "Finances" },
 ];
 const helpItems = [
   { href: "/settings", icon: Settings, label: "Settings", disabled: true },

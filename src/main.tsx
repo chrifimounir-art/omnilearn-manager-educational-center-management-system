@@ -15,6 +15,7 @@ import { HomePage } from '@/pages/HomePage'
 import { CentersPage } from '@/pages/CentersPage';
 import { StudentsPage } from '@/pages/StudentsPage';
 import { TeachersPage } from '@/pages/TeachersPage';
+import { FinancesPage } from '@/pages/FinancesPage';
 const queryClient = new QueryClient();
 const router = createBrowserRouter([
   {
@@ -35,6 +36,11 @@ const router = createBrowserRouter([
   {
     path: "/teachers",
     element: <TeachersPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/finances",
+    element: <FinancesPage />,
     errorElement: <RouteErrorBoundary />,
   },
 ]);
