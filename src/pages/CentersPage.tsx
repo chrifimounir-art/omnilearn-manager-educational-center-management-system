@@ -13,7 +13,7 @@ import { Building, PlusCircle, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { Center } from '@shared/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Toaster, toast } from 'sonner';
+import { toast } from 'sonner';
 const centerSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters'),
   address: z.string().min(5, 'Address must be at least 5 characters'),
@@ -98,7 +98,6 @@ export function CentersPage() {
   });
   return (
     <AppLayout container>
-      <Toaster richColors />
       <div className="space-y-8">
         <header className="flex items-center justify-between">
           <div>

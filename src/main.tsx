@@ -16,7 +16,13 @@ import { CentersPage } from '@/pages/CentersPage';
 import { StudentsPage } from '@/pages/StudentsPage';
 import { TeachersPage } from '@/pages/TeachersPage';
 import { FinancesPage } from '@/pages/FinancesPage';
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      suspense: false,
+    },
+  },
+});
 const router = createBrowserRouter([
   {
     path: "/",

@@ -15,7 +15,7 @@ import { PlusCircle, Search, Trash2, Users } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { Center, Student } from '@shared/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Toaster, toast } from 'sonner';
+import { toast } from 'sonner';
 import { format } from 'date-fns';
 import {
   AlertDialog,
@@ -112,7 +112,6 @@ export function StudentsPage() {
   });
   return (
     <AppLayout container>
-      <Toaster richColors />
       <div className="space-y-8">
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div>

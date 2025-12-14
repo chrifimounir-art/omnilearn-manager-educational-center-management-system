@@ -1,37 +1,17 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Users, GraduationCap, Building } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { DollarSign, Users, GraduationCap, Building, TrendingUp, TrendingDown } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
-import { Center, Student, Teacher, Payment } from "@shared/types";
+import { Center, Student, Teacher, Payment, Expense } from "@shared/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import React from "react";
-const mockChartData = [
-  { name: 'Jan', revenue: 4000, expenses: 2400 },
-  { name: 'Feb', revenue: 3000, expenses: 1398 },
-  { name: 'Mar', revenue: 2000, expenses: 9800 },
-  { name: 'Apr', revenue: 2780, expenses: 3908 },
-  { name: 'May', revenue: 1890, expenses: 4800 },
-  { name: 'Jun', revenue: 2390, expenses: 3800 },
-];
-function StatCard({ title, value, icon: Icon, isLoading }: { title: string; value: string | number; icon: React.ElementType; isLoading?: boolean }) {
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-        <Icon className="h-5 w-5 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
-        {isLoading ? (
-          <Skeleton className="h-8 w-24" />
-        ) : (
-          <div className="text-3xl font-bold">{value}</div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
+import { StatCard } from "@/components/StatCard";
+import { format } from 'date-fns';
+const formatCurrency = (amountInCents: number) => {
+  return new Intl.NumberFormat('fr-MA', { style: 'currency', currency: 'MAD', maximumFractionDigits: 0 }).format(amountInCents / 100);
+};
 export function HomePage() {
   const { data: students, isLoading: isLoadingStudents } = useQuery<{ items: Student[] }>({
     queryKey: ['students'],
@@ -49,13 +29,37 @@ export function HomePage() {
     queryKey: ['payments'],
     queryFn: () => api('/api/payments'),
   });
+  const { data: expenses, isLoading: isLoadingExpenses } = useQuery<{ items: Expense[] }>({
+    queryKey: ['expenses'],
+    queryFn: () => api('/api/expenses'),
+  });
+  const isLoading = isLoadingStudents || isLoadingTeachers || isLoadingCenters || isLoadingPayments || isLoadingExpenses;
   const totalRevenue = React.useMemo(() => {
     if (!payments) return 0;
     return payments.items.reduce((sum, p) => sum + p.paidAmount, 0);
   }, [payments]);
-  const formatCurrency = (amountInCents: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amountInCents / 100);
-  };
+  const totalExpenses = React.useMemo(() => {
+    if (!expenses) return 0;
+    return expenses.items.reduce((sum, e) => sum + e.amount, 0);
+  }, [expenses]);
+  const netProfit = totalRevenue - totalExpenses;
+  const chartData = React.useMemo(() => {
+    const monthlyData: { [key: string]: { name: string; income: number; expenses: number } } = {};
+    const addData = (items: (Payment[] | Expense[] | undefined), type: 'income' | 'expenses') => {
+      items?.forEach(item => {
+        const date = new Date('date' in item ? item.date : item.paidDate);
+        const monthKey = format(date, 'MMM yyyy');
+        if (!monthlyData[monthKey]) {
+          monthlyData[monthKey] = { name: format(date, 'MMM'), income: 0, expenses: 0 };
+        }
+        const amount = ('paidAmount' in item ? item.paidAmount : item.amount) / 100;
+        monthlyData[monthKey][type] += amount;
+      });
+    };
+    addData(payments?.items, 'income');
+    addData(expenses?.items, 'expenses');
+    return Object.values(monthlyData).sort((a, b) => new Date(a.name + ' 2024').getTime() - new Date(b.name + ' 2024').getTime());
+  }, [payments, expenses]);
   return (
     <AppLayout container>
       <div className="space-y-8">
@@ -64,35 +68,38 @@ export function HomePage() {
           <p className="text-lg text-muted-foreground">An executive summary of all your centers.</p>
         </header>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard title="Total Revenue" value={formatCurrency(totalRevenue)} icon={DollarSign} isLoading={isLoadingPayments} />
-          <StatCard title="Active Students" value={students?.items.length ?? 0} icon={Users} isLoading={isLoadingStudents} />
-          <StatCard title="Active Teachers" value={teachers?.items.length ?? 0} icon={GraduationCap} isLoading={isLoadingTeachers} />
-          <StatCard title="Total Centers" value={centers?.items.length ?? 0} icon={Building} isLoading={isLoadingCenters} />
+          <StatCard title="Total Revenue" value={formatCurrency(totalRevenue)} icon={TrendingUp} isLoading={isLoading} />
+          <StatCard title="Net Profit" value={formatCurrency(netProfit)} icon={DollarSign} isLoading={isLoading} />
+          <StatCard title="Active Students" value={students?.items.length ?? 0} icon={Users} isLoading={isLoading} />
+          <StatCard title="Total Centers" value={centers?.items.length ?? 0} icon={Building} isLoading={isLoading} />
         </div>
-        <Card className="col-span-1 lg:col-span-2">
+        <Card className="col-span-1 lg:col-span-4">
           <CardHeader>
-            <CardTitle>Financial Overview (Mock Data)</CardTitle>
+            <CardTitle>Financial Overview</CardTitle>
+            <CardDescription>Monthly income vs. expenses across all centers.</CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
             <div className="h-[350px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={mockChartData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value / 1000}k`} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--background))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: 'var(--radius)',
-                    }}
-                    formatter={(value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)}
-                  />
-                  <Legend iconType="circle" />
-                  <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Revenue" />
-                  <Bar dataKey="expenses" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} name="Expenses" />
-                </BarChart>
-              </ResponsiveContainer>
+              {isLoading ? <Skeleton className="h-full w-full" /> : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value / 1000}k`} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--background))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: 'var(--radius)',
+                      }}
+                      formatter={(value: number) => formatCurrency(value * 100)}
+                    />
+                    <Legend iconType="circle" />
+                    <Area type="monotone" dataKey="income" stackId="1" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.2)" name="Income" />
+                    <Area type="monotone" dataKey="expenses" stackId="1" stroke="hsl(var(--destructive))" fill="hsl(var(--destructive) / 0.2)" name="Expenses" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </CardContent>
         </Card>

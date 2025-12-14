@@ -16,7 +16,7 @@ import { PlusCircle, Trash2, GraduationCap } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { Center, Teacher, TeacherRemuneration } from '@shared/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Toaster, toast } from 'sonner';
+import { toast } from 'sonner';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -127,7 +127,6 @@ export function TeachersPage() {
   });
   return (
     <AppLayout container>
-      <Toaster richColors />
       <div className="space-y-8">
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div>
