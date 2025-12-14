@@ -1,6 +1,6 @@
 # OmniLearn Manager
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/chrifimounir-art/omnilearn-manager-educational-center-management-system)
 
 ## Overview
 
@@ -108,7 +108,7 @@ bun deploy     # Build + wrangler deploy
 
 Or use the one-click deploy:
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/chrifimounir-art/omnilearn-manager-educational-center-management-system)
 
 **Bindings**: Single `GlobalDurableObject` (auto-managed).
 
