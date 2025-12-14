@@ -52,7 +52,7 @@ function AddPaymentForm({ onFinished }: { onFinished: () => void }) {
   });
   const onSubmit = (values: PaymentFormData) => {
     const baseAmount = values.baseAmount * 100; // Convert to cents
-    const discountPercent = values.discountPercent || 0;
+    const discountPercent = values.discountPercent;
     const discountAmount = (baseAmount * discountPercent) / 100;
     const paidAmount = baseAmount - discountAmount;
     mutation.mutate({ ...values, baseAmount, discountAmount, paidAmount });

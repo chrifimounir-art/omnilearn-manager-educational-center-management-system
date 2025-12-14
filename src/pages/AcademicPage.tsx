@@ -6,13 +6,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PlusCircle, Trash2, BookOpen, Layers, School, Users } from 'lucide-react';
+import { PlusCircle, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { Center, Level, Class, Subject } from '@shared/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -96,14 +96,21 @@ export function AcademicPage() {
     const { data: subjects, isLoading: l3 } = useQuery<{ items: Subject[] }>({ queryKey: ['subjects'], queryFn: () => api('/api/subjects') });
     const { data: centers, isLoading: l4 } = useQuery<{ items: Center[] }>({ queryKey: ['centers'], queryFn: () => api('/api/centers') });
     const isLoading = l1 || l2 || l3 || l4;
-    const createDeleteMutation = (key: string, endpoint: string) => useMutation({
-        mutationFn: (id: string) => api(`/api/${endpoint}/${id}`, { method: 'DELETE' }),
-        onSuccess: () => { queryClient.invalidateQueries({ queryKey: [key] }); toast.success(`${key.slice(0, -1)} deleted!`); },
+    const deleteLevel = useMutation({
+        mutationFn: (id: string) => api(`/api/levels/${id}`, { method: 'DELETE' }),
+        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['levels'] }); toast.success('Level deleted!'); },
         onError: (err) => toast.error(`Failed: ${err.message}`),
     });
-    const deleteLevel = createDeleteMutation('levels', 'levels');
-    const deleteClass = createDeleteMutation('classes', 'classes');
-    const deleteSubject = createDeleteMutation('subjects', 'subjects');
+    const deleteClass = useMutation({
+        mutationFn: (id: string) => api(`/api/classes/${id}`, { method: 'DELETE' }),
+        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['classes'] }); toast.success('Class deleted!'); },
+        onError: (err) => toast.error(`Failed: ${err.message}`),
+    });
+    const deleteSubject = useMutation({
+        mutationFn: (id: string) => api(`/api/subjects/${id}`, { method: 'DELETE' }),
+        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['subjects'] }); toast.success('Subject deleted!'); },
+        onError: (err) => toast.error(`Failed: ${err.message}`),
+    });
     const getCenterName = (id: string) => centers?.items.find(c => c.id === id)?.name ?? 'N/A';
     const getLevelName = (id: string) => levels?.items.find(l => l.id === id)?.name ?? 'N/A';
     return (
@@ -145,7 +152,7 @@ export function AcademicPage() {
             <Sheet open={!!sheet} onOpenChange={(open) => !open && setSheet(false)}>
                 <SheetContent>
                     <SheetHeader>
-                        <SheetTitle>Create New {sheet?.charAt(0).toUpperCase() + sheet!.slice(1)}</SheetTitle>
+                        <SheetTitle>Create New {sheet ? (sheet.charAt(0).toUpperCase() + sheet.slice(1)) : 'Item'}</SheetTitle>
                         <SheetDescription>Fill in the details below.</SheetDescription>
                     </SheetHeader>
                     <div className="py-8">
