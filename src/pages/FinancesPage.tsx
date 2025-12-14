@@ -32,8 +32,8 @@ const formatCurrency = (amountInCents: number) => {
 const paymentSchema = z.object({
   studentId: z.string().min(1, "Student is required"),
   centerId: z.string().min(1, "Center is required"),
-  baseAmount: z.number().min(1, "Amount must be at least 1 MAD").default(300),
-  discountPercent: z.number().min(0).max(100).default(0),
+  baseAmount: z.number().min(1, "Amount must be at least 1 MAD"),
+  discountPercent: z.number().min(0).max(100).optional().transform(v => v ?? 0),
 });
 type PaymentFormData = z.infer<typeof paymentSchema>;
 function AddPaymentForm({ onFinished }: { onFinished: () => void }) {
@@ -68,10 +68,10 @@ function AddPaymentForm({ onFinished }: { onFinished: () => void }) {
           <FormItem><FormLabel>Center</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a center" /></SelectTrigger></FormControl><SelectContent>{centersData?.items.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>
         )} />
         <FormField control={form.control} name="baseAmount" render={({ field }) => (
-          <FormItem><FormLabel>Amount (MAD)</FormLabel><FormControl><Input type="number" placeholder="300" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} /></FormControl><FormMessage /></FormItem>
+          <FormItem><FormLabel>Amount (MAD)</FormLabel><FormControl><Input type="number" placeholder="300" {...field} onChange={e => field.onChange(e.target.valueAsNumber || 0)} /></FormControl><FormMessage /></FormItem>
         )} />
         <FormField control={form.control} name="discountPercent" render={({ field }) => (
-          <FormItem><FormLabel>Discount (%)</FormLabel><FormControl><Input type="number" placeholder="10" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} /></FormControl><FormMessage /></FormItem>
+          <FormItem><FormLabel>Discount (%)</FormLabel><FormControl><Input type="number" placeholder="10" {...field} onChange={e => field.onChange(e.target.valueAsNumber || 0)} /></FormControl><FormMessage /></FormItem>
         )} />
         <Button type="submit" disabled={mutation.isPending} className="w-full">{mutation.isPending ? "Saving..." : "Record Payment"}</Button>
       </form>
@@ -81,7 +81,7 @@ function AddPaymentForm({ onFinished }: { onFinished: () => void }) {
 const expenseSchema = z.object({
   centerId: z.string().min(1, "Center is required"),
   description: z.string().min(3, "Description is required"),
-  amount: z.number().min(1, "Amount must be at least 1 MAD").default(100),
+  amount: z.number().min(1, "Amount must be at least 1 MAD"),
 });
 type ExpenseFormData = z.infer<typeof expenseSchema>;
 function AddExpenseForm({ onFinished }: { onFinished: () => void }) {
@@ -111,7 +111,7 @@ function AddExpenseForm({ onFinished }: { onFinished: () => void }) {
           <FormItem><FormLabel>Description</FormLabel><FormControl><Input placeholder="e.g., Office Supplies" {...field} /></FormControl><FormMessage /></FormItem>
         )} />
         <FormField control={form.control} name="amount" render={({ field }) => (
-          <FormItem><FormLabel>Amount (MAD)</FormLabel><FormControl><Input type="number" placeholder="150" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} /></FormControl><FormMessage /></FormItem>
+          <FormItem><FormLabel>Amount (MAD)</FormLabel><FormControl><Input type="number" placeholder="150" {...field} onChange={e => field.onChange(e.target.valueAsNumber || 0)} /></FormControl><FormMessage /></FormItem>
         )} />
         <Button type="submit" disabled={mutation.isPending} className="w-full">{mutation.isPending ? "Saving..." : "Record Expense"}</Button>
       </form>
@@ -120,9 +120,9 @@ function AddExpenseForm({ onFinished }: { onFinished: () => void }) {
 }
 const configSchema = z.object({
   centerId: z.string().min(1, "Center is required"),
-  basePricePerStudent: z.number().positive("Base price must be positive").default(300),
-  profPercent: z.number().min(0).max(100).default(50),
-  centerPercent: z.number().min(0).max(100).default(50),
+  basePricePerStudent: z.number().positive("Base price must be positive"),
+  profPercent: z.number().min(0).max(100),
+  centerPercent: z.number().min(0).max(100),
 }).refine(data => data.profPercent + data.centerPercent === 100, {
   message: "Professor and Center percentages must add up to 100",
   path: ["centerPercent"],
@@ -155,13 +155,13 @@ function ConfigForm({ onFinished, existingConfig }: { onFinished: () => void, ex
           <FormItem><FormLabel>Center</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!existingConfig}><FormControl><SelectTrigger><SelectValue placeholder="Select a center" /></SelectTrigger></FormControl><SelectContent>{centersData?.items.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>
         )} />
         <FormField control={form.control} name="basePricePerStudent" render={({ field }) => (
-          <FormItem><FormLabel>Base Price per Student (MAD)</FormLabel><FormControl><Input type="number" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} /></FormControl><FormMessage /></FormItem>
+          <FormItem><FormLabel>Base Price per Student (MAD)</FormLabel><FormControl><Input type="number" {...field} onChange={e => field.onChange(e.target.valueAsNumber || 0)} /></FormControl><FormMessage /></FormItem>
         )} />
         <FormField control={form.control} name="profPercent" render={({ field }) => (
-          <FormItem><FormLabel>Professor's Share (%)</FormLabel><FormControl><Input type="number" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} /></FormControl><FormMessage /></FormItem>
+          <FormItem><FormLabel>Professor's Share (%)</FormLabel><FormControl><Input type="number" {...field} onChange={e => field.onChange(e.target.valueAsNumber || 0)} /></FormControl><FormMessage /></FormItem>
         )} />
         <FormField control={form.control} name="centerPercent" render={({ field }) => (
-          <FormItem><FormLabel>Center's Share (%)</FormLabel><FormControl><Input type="number" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} /></FormControl><FormMessage /></FormItem>
+          <FormItem><FormLabel>Center's Share (%)</FormLabel><FormControl><Input type="number" {...field} onChange={e => field.onChange(e.target.valueAsNumber || 0)} /></FormControl><FormMessage /></FormItem>
         )} />
         <Button type="submit" disabled={mutation.isPending} className="w-full">{mutation.isPending ? "Saving..." : "Save Configuration"}</Button>
       </form>
@@ -194,13 +194,14 @@ export function FinancesPage() {
   const chartData = React.useMemo(() => {
     const monthlyData: Record<string, { name: string; income: number; expenses: number }> = {};
     const addData = (items: (Payment | Expense)[] | undefined, type: 'income' | 'expenses') => {
-      items?.forEach(item => {
+      if (!items || items.length === 0) return;
+      items.forEach(item => {
         const date = new Date('date' in item ? item.date : item.paidDate);
         const monthKey = format(date, 'MMM yyyy');
         if (!monthlyData[monthKey]) {
           monthlyData[monthKey] = { name: monthKey, income: 0, expenses: 0 };
         }
-        const amount = ('paidAmount' in item ? item.paidAmount : item.amount);
+        const amount = ('paidAmount' in item ? item.paidAmount ?? 0 : item.amount ?? 0);
         monthlyData[monthKey][type] += amount;
       });
     };
@@ -209,7 +210,7 @@ export function FinancesPage() {
     return Object.values(monthlyData).sort((a, b) => new Date(a.name).getTime() - new Date(b.name).getTime());
   }, [paymentsData, expensesData]);
   const allTransactions = React.useMemo(() => {
-    const payments = paymentsData?.items.map(p => ({ ...p, type: 'income' as const, date: p.paidDate, amount: p.paidAmount, description: `Tuition - ${studentsData?.items.find(s => s.id === p.studentId)?.firstName ?? 'N/A'}` })) ?? [];
+    const payments = paymentsData?.items.map(p => ({ ...p, type: 'income' as const, date: p.paidDate, amount: p.paidAmount, description: `Tuition - ${studentsData?.items?.find(s => s.id === p.studentId)?.firstName ?? 'Unknown'}` })) ?? [];
     const expenses = expensesData?.items.map(e => ({ ...e, type: 'expense' as const })) ?? [];
     return [...payments, ...expenses].sort((a, b) => b.date - a.date);
   }, [paymentsData, expensesData, studentsData]);
@@ -221,28 +222,38 @@ export function FinancesPage() {
       const config = configsData.items.find(cf => cf.centerId === center.id);
       const profGain = config ? (sumPaid * config.profPercent / 100) : 0;
       const centerGain = sumPaid - profGain;
-      const teacherCount = teachersData.items.filter(t => t.centerIds.includes(center.id)).length || 1;
+      const teacherCount = teachersData.items?.filter(t => t.centerIds.includes(center.id)).length || 1;
       const teacherShare = profGain / teacherCount;
       return { center, sumPaid, profGain, centerGain, teacherShare };
     });
   }, [centersData, paymentsData, configsData, teachersData]);
   const handleExportPDF = () => {
-    const doc = new jsPDF();
-    doc.text("Financial Report", 14, 16);
-    (doc as any).autoTable({
-      startY: 22,
-      head: [['Date', 'Description', 'Type', 'Amount']],
-      body: allTransactions.map(tx => [format(new Date(tx.date), 'PPP'), tx.description, tx.type, formatCurrency(tx.type === 'income' ? tx.amount : -tx.amount)]),
-    });
-    doc.save('financial-report.pdf');
-    toast.success("PDF report downloaded!");
+    try {
+      const doc = new jsPDF();
+      doc.text("Financial Report", 14, 16);
+      (doc as any).autoTable({
+        startY: 22,
+        head: [['Date', 'Description', 'Type', 'Amount']],
+        body: allTransactions.map(tx => [format(new Date(tx.date), 'PPP'), tx.description, tx.type, formatCurrency(tx.type === 'income' ? tx.amount : -tx.amount)]),
+      });
+      doc.save('financial-report.pdf');
+      toast.success("PDF report downloaded!");
+    } catch (error) {
+      toast.error("Failed to generate PDF report.");
+      console.error(error);
+    }
   };
   const handleExportExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(allTransactions.map(tx => ({ Date: format(new Date(tx.date), 'PPP'), Description: tx.description, Type: tx.type, Amount: (tx.type === 'income' ? tx.amount : -tx.amount) / 100 })));
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
-    XLSX.writeFile(workbook, "financial-report.xlsx");
-    toast.success("Excel report downloaded!");
+    try {
+      const worksheet = XLSX.utils.json_to_sheet(allTransactions.map(tx => ({ Date: format(new Date(tx.date), 'PPP'), Description: tx.description, Type: tx.type, Amount: (tx.type === 'income' ? tx.amount : -tx.amount) / 100 })));
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
+      XLSX.writeFile(workbook, "financial-report.xlsx");
+      toast.success("Excel report downloaded!");
+    } catch (error) {
+      toast.error("Failed to generate Excel report.");
+      console.error(error);
+    }
   };
   return (
     <AppLayout container>
@@ -268,25 +279,25 @@ export function FinancesPage() {
           <TabsContent value="overview" className="space-y-6 pt-4">
             <Card>
               <CardHeader><CardTitle>Income vs. Expenses</CardTitle><CardDescription>Summary of financial performance.</CardDescription></CardHeader>
-              <CardContent className="pl-2"><div className="h-[350px] w-full">{isLoading ? <Skeleton className="h-full w-full" /> : (<ResponsiveContainer width="100%" height="100%"><AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}><CartesianGrid strokeDasharray="3 3" vertical={false} /><XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} /><YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => formatCurrency(value)} /><Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }} formatter={(value: number) => formatCurrency(value)} /><Legend iconType="circle" /><Area type="monotone" dataKey="income" stackId="1" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.2)" name="Income" /><Area type="monotone" dataKey="expenses" stackId="1" stroke="hsl(var(--destructive))" fill="hsl(var(--destructive) / 0.2)" name="Expenses" /></AreaChart></ResponsiveContainer>)}</div></CardContent>
+              <CardContent className="pl-2"><div className="h-[300px] sm:h-[400px] w-full">{isLoading ? <Skeleton className="h-full w-full" /> : (<ResponsiveContainer width="100%" height="100%"><AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}><CartesianGrid strokeDasharray="3 3" vertical={false} /><XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} /><YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => formatCurrency(value)} /><Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }} formatter={(value: number) => formatCurrency(value)} /><Legend iconType="circle" /><Area type="monotone" dataKey="income" stackId="1" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.2)" name="Income" /><Area type="monotone" dataKey="expenses" stackId="1" stroke="hsl(var(--destructive))" fill="hsl(var(--destructive) / 0.2)" name="Expenses" /></AreaChart></ResponsiveContainer>)}</div></CardContent>
             </Card>
           </TabsContent>
           <TabsContent value="transactions" className="space-y-6 pt-4">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between"><div><CardTitle>Recent Transactions</CardTitle><CardDescription>A log of all financial activities.</CardDescription></div><div className="flex gap-2"><Button variant="outline" onClick={() => setSheetOpen('expense')}><PlusCircle className="mr-2 h-4 w-4" />Add Expense</Button><Button onClick={() => setSheetOpen('payment')}><PlusCircle className="mr-2 h-4 w-4" />Add Payment</Button></div></CardHeader>
-              <CardContent><div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Description</TableHead><TableHead>Type</TableHead><TableHead className="text-right">Amount</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader><TableBody>{isLoading && [...Array(5)].map((_, i) => <TableRow key={i}><TableCell><Skeleton className="h-5 w-24" /></TableCell><TableCell><Skeleton className="h-5 w-40" /></TableCell><TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell><TableCell className="text-right"><Skeleton className="h-5 w-16" /></TableCell><TableCell className="text-right"><Skeleton className="h-8 w-8" /></TableCell></TableRow>)}{allTransactions.map(tx => (<TableRow key={tx.id}><TableCell className="hidden sm:table-cell">{format(new Date(tx.date), 'PPP')}</TableCell><TableCell className="font-medium">{tx.description}</TableCell><TableCell><Badge variant={tx.type === 'income' ? 'default' : 'destructive'} className="capitalize">{tx.type}</Badge></TableCell><TableCell className={`text-right font-mono ${tx.type === 'income' ? 'text-emerald-600' : 'text-destructive'}`}>{formatCurrency(tx.type === 'income' ? tx.amount : -tx.amount)}</TableCell><TableCell className="text-right"><AlertDialog><AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will permanently delete this transaction.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => tx.type === 'income' ? deletePaymentMutation.mutate(tx.id) : deleteExpenseMutation.mutate(tx.id)}>Delete</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></TableCell></TableRow>))}</TableBody></Table></div></CardContent>
+              <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"><div><CardTitle>Recent Transactions</CardTitle><CardDescription>A log of all financial activities.</CardDescription></div><div className="flex gap-2 w-full sm:w-auto"><Button variant="outline" onClick={() => setSheetOpen('expense')} className="flex-1 sm:flex-none"><PlusCircle className="mr-2 h-4 w-4" />Add Expense</Button><Button onClick={() => setSheetOpen('payment')} className="flex-1 sm:flex-none"><PlusCircle className="mr-2 h-4 w-4" />Add Payment</Button></div></CardHeader>
+              <CardContent><div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Description</TableHead><TableHead>Type</TableHead><TableHead className="text-right">Amount</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader><TableBody>{isLoading && [...Array(5)].map((_, i) => <TableRow key={i}><TableCell><Skeleton className="h-5 w-24" /></TableCell><TableCell><Skeleton className="h-5 w-40" /></TableCell><TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell><TableCell className="text-right"><Skeleton className="h-5 w-16" /></TableCell><TableCell className="text-right"><Skeleton className="h-8 w-8" /></TableCell></TableRow>)}{allTransactions.map(tx => (tx && tx.id && <TableRow key={tx.id}><TableCell className="hidden sm:table-cell">{format(new Date(tx.date), 'PPP')}</TableCell><TableCell className="font-medium">{tx.description}</TableCell><TableCell><Badge variant={tx.type === 'income' ? 'default' : 'destructive'} className="capitalize">{tx.type}</Badge></TableCell><TableCell className={`text-right font-mono ${tx.type === 'income' ? 'text-emerald-600' : 'text-destructive'}`}>{formatCurrency(tx.type === 'income' ? tx.amount : -tx.amount)}</TableCell><TableCell className="text-right"><AlertDialog><AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will permanently delete this transaction.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => tx.type === 'income' ? deletePaymentMutation.mutate(tx.id) : deleteExpenseMutation.mutate(tx.id)}>Delete</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></TableCell></TableRow>))}</TableBody></Table></div></CardContent>
             </Card>
           </TabsContent>
           <TabsContent value="payroll" className="space-y-6 pt-4">
             <Card>
               <CardHeader><CardTitle>Payroll Overview</CardTitle><CardDescription>Estimated teacher payouts based on center revenue and financial configs.</CardDescription></CardHeader>
-              <CardContent><Table><TableHeader><TableRow><TableHead>Center</TableHead><TableHead>Total Revenue</TableHead><TableHead>Professor Share</TableHead><TableHead>Center Share</TableHead><TableHead>Est. Per Teacher</TableHead></TableRow></TableHeader><TableBody>{isLoading ? <TableRow><TableCell colSpan={5}><Skeleton className="h-20 w-full" /></TableCell></TableRow> : centerStats.map(stat => (<TableRow key={stat.center.id}><TableCell>{stat.center.name}</TableCell><TableCell>{formatCurrency(stat.sumPaid)}</TableCell><TableCell>{formatCurrency(stat.profGain)}</TableCell><TableCell>{formatCurrency(stat.centerGain)}</TableCell><TableCell>{formatCurrency(stat.teacherShare)}</TableCell></TableRow>))}</TableBody></Table></CardContent>
+              <CardContent><div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Center</TableHead><TableHead>Total Revenue</TableHead><TableHead>Professor Share</TableHead><TableHead>Center Share</TableHead><TableHead>Est. Per Teacher</TableHead></TableRow></TableHeader><TableBody>{isLoading ? <TableRow><TableCell colSpan={5}><Skeleton className="h-20 w-full" /></TableCell></TableRow> : centerStats.map(stat => (<TableRow key={stat.center.id}><TableCell>{stat.center.name}</TableCell><TableCell>{formatCurrency(stat.sumPaid)}</TableCell><TableCell>{formatCurrency(stat.profGain)}</TableCell><TableCell>{formatCurrency(stat.centerGain)}</TableCell><TableCell>{formatCurrency(stat.teacherShare)}</TableCell></TableRow>))}</TableBody></Table></div></CardContent>
             </Card>
           </TabsContent>
           <TabsContent value="configs" className="space-y-6 pt-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between"><div><CardTitle>Financial Configurations</CardTitle><CardDescription>Manage revenue sharing rules for each center.</CardDescription></div><Button onClick={() => setSheetOpen('config')}><PlusCircle className="mr-2 h-4 w-4" />Add Config</Button></CardHeader>
-              <CardContent><Table><TableHeader><TableRow><TableHead>Center</TableHead><TableHead>Base Price</TableHead><TableHead>Professor %</TableHead><TableHead>Center %</TableHead></TableRow></TableHeader><TableBody>{isLoading ? <TableRow><TableCell colSpan={4}><Skeleton className="h-20 w-full" /></TableCell></TableRow> : configsData?.items.map(c => (<TableRow key={c.id}><TableCell>{centersData?.items.find(center => center.id === c.centerId)?.name}</TableCell><TableCell>{formatCurrency(c.basePricePerStudent)}</TableCell><TableCell>{c.profPercent}%</TableCell><TableCell>{c.centerPercent}%</TableCell></TableRow>))}</TableBody></Table></CardContent>
+              <CardContent><div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Center</TableHead><TableHead>Base Price</TableHead><TableHead>Professor %</TableHead><TableHead>Center %</TableHead></TableRow></TableHeader><TableBody>{isLoading ? <TableRow><TableCell colSpan={4}><Skeleton className="h-20 w-full" /></TableCell></TableRow> : configsData?.items.map(c => (<TableRow key={c.id}><TableCell>{centersData?.items.find(center => center.id === c.centerId)?.name}</TableCell><TableCell>{formatCurrency(c.basePricePerStudent)}</TableCell><TableCell>{c.profPercent}%</TableCell><TableCell>{c.centerPercent}%</TableCell></TableRow>))}</TableBody></Table></div></CardContent>
             </Card>
           </TabsContent>
           <TabsContent value="reports" className="space-y-6 pt-4">
