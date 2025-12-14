@@ -210,7 +210,10 @@ export function FinancesPage() {
     return Object.values(monthlyData).sort((a, b) => new Date(a.name).getTime() - new Date(b.name).getTime());
   }, [paymentsData, expensesData]);
   const allTransactions = React.useMemo(() => {
-    const payments = paymentsData?.items.map(p => ({ ...p, type: 'income' as const, date: p.paidDate, amount: p.paidAmount, description: `Tuition - ${studentsData?.items?.find(s => s.id === p.studentId)?.firstName ?? 'Unknown'}` })) ?? [];
+    const payments = paymentsData?.items.map(p => {
+      const studentName = studentsData?.items?.find(s => s.id === p.studentId)?.firstName ?? 'Unknown';
+      return { ...p, type: 'income' as const, date: p.paidDate, amount: p.paidAmount, description: `Tuition - ${studentName}` };
+    }) ?? [];
     const expenses = expensesData?.items.map(e => ({ ...e, type: 'expense' as const })) ?? [];
     return [...payments, ...expenses].sort((a, b) => b.date - a.date);
   }, [paymentsData, expensesData, studentsData]);

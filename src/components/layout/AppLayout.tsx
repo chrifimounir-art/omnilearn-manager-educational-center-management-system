@@ -13,7 +13,7 @@ type AppLayoutProps = {
 };
 export function AppLayout({ children, container = false, className, contentClassName }: AppLayoutProps): JSX.Element {
   return (
-    <SidebarProvider collapsible={false} defaultOpen={true}>
+    <SidebarProvider defaultOpen={true}>
       <AppSidebar />
       <SidebarInset className={className}>
         {container ? (
